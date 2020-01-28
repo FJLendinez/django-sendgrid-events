@@ -16,12 +16,10 @@ class Event(models.Model):
 
     @classmethod
     def process_batch(cls, data):
-        events = []
-        for event in json.loads(data):
-            events.append(Event.objects.create(
-                kind=event["event"],
-                email=event["email"],
-                data=event
-            ))
+        events = [Event(kind=event["event"],
+                        email=event["email"],
+                        data=event) for event in json.loads(data)]
+        
+        events = Event.objects.bulk_create(events)
         batch_processed.send(sender=Event, events=events)
         return events
